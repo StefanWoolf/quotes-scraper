@@ -8,7 +8,7 @@ export MSYS_NO_PATHCONV := 1
 .PHONY: build run clean ci
 
 build:
-	docker build $(BUILD_FLAGS) -t $(IMAGE) .
+	docker buildx build $(BUILD_FLAGS) -t $(IMAGE) .
 
 run: build
 	mkdir -p out
