@@ -25,7 +25,7 @@ https://quotes.toscrape.com/scroll (цитаты подгружаются JS п�
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-playwright install chromium
+playwright install --only-shell chromium
 python src/scraper.py
 ```
 
@@ -46,7 +46,7 @@ python src/scraper.py
 
 1. `base` — `node:22-bookworm` + Python и виртуальное окружение `/venv`.
 2. `deps` — установка Python-зависимостей из `requirements.txt`.
-3. `browser` — скачивание Chromium в `/ms-playwright`.
+3. `browser` — скачивание headless-версии Chromium (`--only-shell`) в `/ms-playwright`.
 4. `final` — итоговый образ: берёт `/venv` из `deps`, ставит системные библиотеки
    для Chromium, берёт браузер из `browser` и в самом конце копирует код.
 
@@ -54,6 +54,14 @@ python src/scraper.py
 Код копируется последним шагом, поэтому правка кода не пересобирает ни зависимости, ни браузер.
 `make clean` удаляет только образ, а кеш сборки BuildKit остаётся — повторный `make build`
 берёт слой с браузером из кеша и не качает его заново.
+
+### Ускорение сборки
+
+- Скачивания apt и pip хранятся в кеше BuildKit (`RUN --mount=type=cache`): при смене
+  `requirements.txt` пакеты не скачиваются повторно.
+- В CI кеш слоёв хранится в GitHub Actions: `make ci` получает
+  `BUILD_FLAGS="--load --cache-from type=gha --cache-to type=gha,mode=max"`,
+  поэтому браузер не скачивается при каждом запуске.
 
 Результат достаётся из контейнера через bind mount: папка `out/` хоста
 монтируется в `/app/out` контейнера.
