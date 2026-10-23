@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Сборщик BuildKit, который умеет хранить кеш в GitHub Actions
+      - uses: docker/setup-buildx-action@v3
+
+      # Открывает BuildKit доступ к кешу GitHub Actions
+      - uses: crazy-max/ghaction-github-runtime@v3
+
+      # --load кладёт собранный образ в локальный Docker, чтобы make run мог его запустить
+      - run: make ci BUILD_FLAGS="--load --cache-from type=gha --cache-to type=gha,mode=max"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: out/result.json
